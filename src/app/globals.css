@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+:root {
+  --primary: #4F46E5;
+  --secondary: #0EA5E9;
+  --background: #F9FAFB;
+  --background-card: #fff;
+  --border: #E5E7EB;
+  --text-primary: #111827;
+  --text-light: #F9FAFB;
+  --text-muted: #6B7280;
+  --success: #10B981;
+  --warning: #F59E0B;
+  --error: #F43F5E;
+  --info: #06B6D4;
+  --amber: #F59E0B;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: linear-gradient(135deg, #232526 0%, #414345 100%);
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--text-primary);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.card, .modal-card {
+  background: var(--background-card);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  box-shadow: 0 4px 24px 0 rgba(79,70,229,0.08);
+  color: var(--text-primary);
+}
+
+.card-title {
+  color: var(--primary);
+}
+
+.card-muted {
+  color: var(--text-muted);
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+  border-radius: 0.5rem;
+  transition: background 0.2s;
+}
+.btn-primary:hover {
+  background: var(--amber);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.animate-fadeIn {
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes modalIn {
+  from { transform: translateY(40px) scale(0.98); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+.animate-modalIn {
+  animation: modalIn 0.3s cubic-bezier(.4,0,.2,1);
+}
