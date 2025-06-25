@@ -10,6 +10,7 @@ import BubbleChart from '@/components/charts/BubbleChart';
 import ScatterPlot from '@/components/charts/ScatterPlot';
 import MapChart from '@/components/charts/MapChart';
 import Modal from '@/components/Modal';
+import { Entry } from '@/types/Entry';
 
 const chartTypes = [
   { key: 'bar', label: 'Intensity by Sector', component: BarChart },
@@ -31,9 +32,9 @@ export default function Home() {
     activeTopics: 0,
   });
   const [modalChart, setModalChart] = useState<string | null>(null);
-  const [modalData, setModalData] = useState<any[]>([]);
+  const [modalData, setModalData] = useState<Entry[]>([]);
   const [uploading, setUploading] = useState(false);
-  const filterPanelRef = useRef<any>(null);
+  const filterPanelRef = useRef<{ selectAll: () => void } | null>(null);
 
   useEffect(() => {
     const params = new URLSearchParams();

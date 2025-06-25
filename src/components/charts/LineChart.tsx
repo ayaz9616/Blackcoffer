@@ -12,6 +12,7 @@ import {
   Legend,
   Filler,
 } from 'chart.js';
+import { Entry } from '@/types/Entry';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
 
@@ -20,15 +21,15 @@ interface LineChartProps {
 }
 
 export default function LineChart({ filters }: LineChartProps) {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<{ labels: string[]; datasets: { label: string; data: number[]; borderColor: string; backgroundColor: string; fill: boolean }[] } | null>(null);
   useEffect(() => {
     const params = new URLSearchParams();
     Object.entries(filters).forEach(([key, vals]) => vals.forEach(v => params.append(key, v)));
     fetch(`/api/data?${params}`)
       .then(res => res.json())
-      .then(entries => {
+      .then((entries: Entry[]) => {
         const grouped: Record<string, number> = {};
-        entries.forEach((e: any) => {
+        entries.forEach((e: Entry) => {
           if (!e.end_year) return;
           grouped[e.end_year] = (grouped[e.end_year] || 0) + (e.likelihood || 0);
         });

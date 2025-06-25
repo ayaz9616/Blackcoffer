@@ -9,6 +9,7 @@ import {
   Legend,
   Title,
 } from 'chart.js';
+import { Entry } from '@/types/Entry';
 
 ChartJS.register(LinearScale, PointElement, Tooltip, Legend, Title);
 
@@ -17,7 +18,7 @@ interface ScatterPlotProps {
 }
 
 export default function ScatterPlot({ filters }: ScatterPlotProps) {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<{ datasets: { label: string; data: { x: number; y: number }[]; backgroundColor: string }[] } | null>(null);
   useEffect(() => {
     const params = new URLSearchParams();
     Object.entries(filters).forEach(([key, vals]) => vals.forEach(v => params.append(key, v)));
@@ -32,8 +33,8 @@ export default function ScatterPlot({ filters }: ScatterPlotProps) {
           return [];
         }
       })
-      .then(entries => {
-        const points = entries.filter((e: any) => e.impact && e.likelihood).map((e: any) => ({
+      .then((entries: Entry[]) => {
+        const points = entries.filter((e: Entry) => e.impact && e.likelihood).map((e: Entry) => ({
           x: Number(e.impact) || 0,
           y: e.likelihood,
         }));

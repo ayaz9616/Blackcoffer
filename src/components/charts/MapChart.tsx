@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import { ComposableMap, Geographies, Geography } from 'react-simple-maps';
+import { Entry } from '@/types/Entry';
 
 const geoUrl = "https://raw.githubusercontent.com/deldersveld/topojson/master/world-countries.json";
 
@@ -25,28 +26,35 @@ interface MapChartProps {
   filters: Record<string, string[]>;
 }
 
+interface GeoType {
+  properties: {
+    name: string;
+  };
+  rsmKey: string;
+}
+
 export default function MapChart({ filters }: MapChartProps) {
-  const [data, setData] = useState<any[]>([]);
+  const [, setData] = useState<Entry[]>([]);
   const [countryCounts, setCountryCounts] = useState<Record<string, number>>({});
 
   useEffect(() => {
     const params = new URLSearchParams();
-    Object.entries(filters).forEach(([key, vals]) => vals.forEach(v => params.append(key, v)));
+    Object.entries(filters).forEach(([key, vals]) => vals.forEach((v: string) => params.append(key, v)));
     fetch(`/api/data?${params}`)
-      .then(async res => {
+      .then(async (res: Response) => {
         if (!res.ok) return [];
         const text = await res.text();
         if (!text) return [];
         try {
-          return JSON.parse(text);
+          return JSON.parse(text) as Entry[];
         } catch {
           return [];
         }
       })
-      .then(entries => {
+      .then((entries: Entry[]) => {
         setData(entries);
         const counts: Record<string, number> = {};
-        entries.forEach((e: any) => {
+        entries.forEach((e: Entry) => {
           if (!e.country) return;
           const mapped = countryNameMap[e.country] || e.country;
           counts[mapped] = (counts[mapped] || 0) + 1;
@@ -56,7 +64,7 @@ export default function MapChart({ filters }: MapChartProps) {
   }, [filters]);
 
   // Simple color scale
-  function getColor(count: number) {
+  function getColor(count: number): string {
     if (!count) return "#E5E7EB";
     if (count > 20) return "#4F46E5";
     if (count > 10) return "#6366F1";
@@ -72,14 +80,15 @@ export default function MapChart({ filters }: MapChartProps) {
     <div className="w-full h-[350px]">
       <ComposableMap projectionConfig={{ scale: 120 }} width={600} height={350}>
         <Geographies geography={geoUrl}>
-          {({ geographies }) =>
-            geographies.map(geo => {
-              const countryName = geo.properties.name;
+          {({ geographies }: { geographies: unknown }) =>
+            (Array.isArray(geographies) ? geographies : []).map((geo) => {
+              const g = geo as GeoType;
+              const countryName = g.properties.name;
               const count = countryCounts[countryName] || 0;
               return (
                 <Geography
-                  key={geo.rsmKey}
-                  geography={geo}
+                  key={g.rsmKey}
+                  geography={g}
                   fill={getColor(count)}
                   stroke="#fff"
                   style={{

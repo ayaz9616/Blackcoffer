@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useState } from 'react';
+import Image from 'next/image';
 
 const Sidebar = () => {
   const [year, setYear] = useState<number | null>(null);
@@ -7,10 +8,10 @@ const Sidebar = () => {
     setYear(new Date().getFullYear());
   }, []);
   return (
-    <aside className="bg-gradient-to-b from-[var(--primary)] via-[var(--secondary)] to-[var(--background)] text-white w-64 min-h-screen flex flex-col p-6 shadow-2xl relative overflow-hidden">
+    <aside className="fixed left-0 top-0 h-screen bg-gradient-to-b from-[var(--primary)] via-[var(--secondary)] to-[var(--background)] text-white w-64 flex flex-col p-6 shadow-2xl overflow-hidden z-50">
       <div className="flex items-center gap-3 mb-10">
         <div className="bg-white/20 rounded-full p-2">
-          <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT2xIu3KWcbq-qKhz9cgIWMWHKzEtaUq8CH0g&s" alt="Logo" width={40} height={40} className="rounded-full object-cover" />
+          <Image src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT2xIu3KWcbq-qKhz9cgIWMWHKzEtaUq8CH0g&s" alt="Logo" width={40} height={40} className="rounded-full object-cover" />
         </div>
         <span className="text-2xl font-extrabold tracking-tight drop-shadow-lg">Blackcoffer</span>
       </div>

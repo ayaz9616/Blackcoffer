@@ -10,6 +10,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
+import { Entry } from '@/types/Entry';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -18,15 +19,15 @@ interface BarChartProps {
 }
 
 export default function BarChart({ filters }: BarChartProps) {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<{ labels: string[]; datasets: { label: string; data: number[]; backgroundColor: string }[] } | null>(null);
   useEffect(() => {
     const params = new URLSearchParams();
     Object.entries(filters).forEach(([key, vals]) => vals.forEach(v => params.append(key, v)));
     fetch(`/api/data?${params}`)
       .then(res => res.json())
-      .then(entries => {
+      .then((entries: Entry[]) => {
         const grouped: Record<string, number> = {};
-        entries.forEach((e: any) => {
+        entries.forEach((e: Entry) => {
           if (!e.sector) return;
           grouped[e.sector] = (grouped[e.sector] || 0) + (e.intensity || 0);
         });

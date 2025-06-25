@@ -9,6 +9,7 @@ import {
   Legend,
   Title,
 } from 'chart.js';
+import { Entry } from '@/types/Entry';
 
 ChartJS.register(LinearScale, PointElement, Tooltip, Legend, Title);
 
@@ -17,18 +18,18 @@ interface BubbleChartProps {
 }
 
 export default function BubbleChart({ filters }: BubbleChartProps) {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<{ datasets: { label: string; data: { x: number; y: number; r: number }[]; backgroundColor: string }[] } | null>(null);
   useEffect(() => {
     const params = new URLSearchParams();
     Object.entries(filters).forEach(([key, vals]) => vals.forEach(v => params.append(key, v)));
     fetch(`/api/data?${params}`)
       .then(res => res.json())
-      .then(entries => {
+      .then((entries: Entry[]) => {
         setData({
           datasets: [
             {
               label: 'Intensity vs Relevance vs Likelihood',
-              data: entries.filter((e: any) => e.intensity && e.relevance && e.likelihood).map((e: any) => ({
+              data: entries.filter((e: Entry) => e.intensity && e.relevance && e.likelihood).map((e: Entry) => ({
                 x: e.intensity,
                 y: e.relevance,
                 r: Math.max(5, e.likelihood * 3),

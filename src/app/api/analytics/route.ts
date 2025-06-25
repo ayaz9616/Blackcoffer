@@ -3,7 +3,7 @@ import dbConnect from '@/lib/dbConnect';
 import Entry from '@/lib/models/Entry';
 
 function parseFilters(searchParams: URLSearchParams) {
-  const filters: any = {};
+  const filters: Record<string, unknown> = {};
   ['end_year', 'topic', 'sector', 'region', 'country', 'city', 'pestle', 'source'].forEach((key) => {
     const value = searchParams.getAll(key);
     if (value.length > 0) filters[key] = { $in: value };

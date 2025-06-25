@@ -4,15 +4,15 @@ import dynamic from 'next/dynamic';
 const Select = dynamic(() => import('react-select'), { ssr: false });
 
 const filterFields = [
-  { key: 'end_year', label: 'End Year' },
-  { key: 'topic', label: 'Topic' },
-  { key: 'sector', label: 'Sector' },
-  { key: 'region', label: 'Region' },
-  { key: 'country', label: 'Country' },
-  { key: 'city', label: 'City' },
-  { key: 'pestle', label: 'PEST' },
-  { key: 'source', label: 'Source' },
-  { key: 'swot', label: 'SWOT' },
+  { key: 'end_year', label: 'End Year', icon: '📅' },
+  { key: 'topic', label: 'Topic', icon: '🏷️' },
+  { key: 'sector', label: 'Sector', icon: '🏢' },
+  { key: 'region', label: 'Region', icon: '🌍' },
+  { key: 'country', label: 'Country', icon: '🏳️' },
+  { key: 'city', label: 'City', icon: '🏙️' },
+  { key: 'pestle', label: 'PEST', icon: '📊' },
+  { key: 'source', label: 'Source', icon: '📰' },
+  { key: 'swot', label: 'SWOT', icon: '🎯' },
 ];
 
 export type FilterState = Record<string, string[]>;
@@ -25,6 +25,7 @@ const FilterPanel = forwardRef(function FilterPanel({ filters, setFilters }: {
 }, ref) {
   const [options, setOptions] = useState<Record<string, OptionType[]>>({});
   const [loading, setLoading] = useState(false);
+  const [activeFilters, setActiveFilters] = useState(0);
 
   useEffect(() => {
     setLoading(true);
@@ -40,8 +41,23 @@ const FilterPanel = forwardRef(function FilterPanel({ filters, setFilters }: {
       });
   }, []);
 
+  useEffect(() => {
+    const count = Object.values(filters).reduce((acc, vals) => acc + vals.length, 0);
+    setActiveFilters(count);
+  }, [filters]);
+
   const selectAllField = (key: string) => {
     setFilters({ ...filters, [key]: (options[key] || []).map(opt => opt.value) });
+  };
+
+  const clearField = (key: string) => {
+    const newFilters = { ...filters };
+    delete newFilters[key];
+    setFilters(newFilters);
+  };
+
+  const resetAllFilters = () => {
+    setFilters({});
   };
 
   useImperativeHandle(ref, () => ({
@@ -55,63 +71,223 @@ const FilterPanel = forwardRef(function FilterPanel({ filters, setFilters }: {
   }));
 
   return (
-    <div>
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {filterFields.map(f => {
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-lg">
+            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.207A1 1 0 013 6.5V4z" />
+            </svg>
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900">Data Filters</h3>
+            <p className="text-sm text-gray-500">
+              {activeFilters > 0 
+                ? `${activeFilters} filter${activeFilters !== 1 ? 's' : ''} active`
+                : 'No filters applied'
+              }
+            </p>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          {activeFilters > 0 && (
+            <button
+              type="button"
+              onClick={resetAllFilters}
+              className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              Clear All
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Filter Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filterFields.map(field => {
+          const selectedCount = filters[field.key]?.length || 0;
+          const totalOptions = options[field.key]?.length || 0;
+          
           return (
-            <div key={f.key} className="max-h-40 overflow-y-auto pr-1">
-              <label className="block mb-1 text-sm font-medium flex items-center justify-between">
-                {f.label}
-                <span className="flex gap-1">
-                  <button
-                    type="button"
-                    className="text-xs text-[var(--secondary)] hover:underline ml-2"
-                    onClick={() => selectAllField(f.key)}
-                    tabIndex={-1}
-                  >Select All</button>
-                </span>
-              </label>
-              <Select
-                inputId={`filter-${f.key}`}
-                isMulti
-                isLoading={loading}
-                options={options[f.key] || []}
-                value={(filters[f.key] || []).map((v: string) => ({ value: v, label: v }))}
-                key={filters[f.key]?.join(',') || 'empty'}
-                onChange={(newValue: unknown) => setFilters({ ...filters, [f.key]: (Array.isArray(newValue) ? (newValue as OptionType[]).map(v => v.value) : []) })}
-                classNamePrefix="react-select"
-                placeholder={`Select ${f.label}`}
-                styles={{
-                  control: (base) => ({ ...base, minHeight: 36, borderRadius: 8, boxShadow: 'none', borderColor: '#d1d5db' }),
-                  multiValue: (base) => ({ ...base, backgroundColor: '#f3f4f6', borderRadius: 6 }),
-                  option: (base, state) => ({ ...base, backgroundColor: state.isSelected ? '#2563eb' : state.isFocused ? '#e0e7ff' : undefined, color: state.isSelected ? '#fff' : '#111827' }),
-                  menu: (base) => ({ ...base, maxHeight: 120, zIndex: 9999, minWidth: '100%', width: '100%', left: 0 }),
-                  menuPortal: (base) => ({ ...base, zIndex: 9999, minWidth: '100%', width: '100%' }),
-                }}
-                aria-label={f.label}
-                menuPlacement="bottom"
-                menuPosition="absolute"
-              />
+            <div key={field.key} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">{field.icon}</span>
+                  <label className="text-sm font-semibold text-gray-900" htmlFor={`filter-${field.key}`}>
+                    {field.label}
+                  </label>
+                </div>
+                <div className="flex items-center gap-2">
+                  {selectedCount > 0 && (
+                    <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                      {selectedCount}
+                    </span>
+                  )}
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => selectAllField(field.key)}
+                      className="px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-colors"
+                      title={`Select all ${field.label}`}
+                    >
+                      Select All
+                    </button>
+                    {selectedCount > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => clearField(field.key)}
+                        className="px-2 py-1 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 transition-colors"
+                        title={`Remove all ${field.label}`}
+                      >
+                        Remove All
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+              
+              <div className="relative">
+                <Select
+                  inputId={`filter-${field.key}`}
+                  isMulti
+                  isLoading={loading}
+                  options={options[field.key] || []}
+                  value={(filters[field.key] || []).map((v: string) => ({ value: v, label: v }))}
+                  key={`${field.key}-${filters[field.key]?.join(',') || 'empty'}`}
+                  onChange={(newValue: unknown) => {
+                    const newFilters = { ...filters };
+                    if (Array.isArray(newValue) && newValue.length > 0) {
+                      newFilters[field.key] = (newValue as OptionType[]).map(v => v.value);
+                    } else {
+                      delete newFilters[field.key];
+                    }
+                    setFilters(newFilters);
+                  }}
+                  classNamePrefix="react-select"
+                  placeholder={`Select ${field.label.toLowerCase()}...`}
+                  noOptionsMessage={() => `No ${field.label.toLowerCase()} available`}
+                  loadingMessage={() => `Loading ${field.label.toLowerCase()}...`}
+                  styles={{
+                    control: (base, state) => ({
+                      ...base,
+                      minHeight: 40,
+                      maxHeight: 120,
+                      borderRadius: 8,
+                      borderColor: state.isFocused ? '#3b82f6' : '#d1d5db',
+                      boxShadow: state.isFocused ? '0 0 0 1px #3b82f6' : 'none',
+                      '&:hover': {
+                        borderColor: '#3b82f6'
+                      }
+                    }),
+                    valueContainer: (base) => ({
+                      ...base,
+                      maxHeight: 80,
+                      overflow: 'auto'
+                    }),
+                    multiValue: (base) => ({
+                      ...base,
+                      backgroundColor: '#eff6ff',
+                      borderRadius: 6,
+                      '.react-select__multi-value__label': {
+                        color: '#1e40af',
+                        fontWeight: 500
+                      }
+                    }),
+                    multiValueRemove: (base) => ({
+                      ...base,
+                      color: '#1e40af',
+                      '&:hover': {
+                        backgroundColor: '#dbeafe',
+                        color: '#dc2626'
+                      }
+                    }),
+                    option: (base, state) => ({
+                      ...base,
+                      backgroundColor: state.isSelected 
+                        ? '#3b82f6' 
+                        : state.isFocused 
+                          ? '#eff6ff' 
+                          : undefined,
+                      color: state.isSelected ? '#ffffff' : '#374151',
+                      '&:hover': {
+                        backgroundColor: state.isSelected ? '#3b82f6' : '#eff6ff'
+                      }
+                    }),
+                    menu: (base) => ({
+                      ...base,
+                      maxHeight: 150,
+                      zIndex: 9999,
+                      boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: 8,
+                      position: 'absolute',
+                      top: '100%',
+                      left: 0,
+                      right: 0,
+                      marginTop: 4,
+                      overflow: 'hidden'
+                    }),
+                    menuList: (base) => ({
+                      ...base,
+                      maxHeight: 150,
+                      overflow: 'auto'
+                    }),
+                    menuPortal: (base) => ({
+                      ...base,
+                      zIndex: 9999
+                    }),
+                    placeholder: (base) => ({
+                      ...base,
+                      color: '#9ca3af',
+                      fontSize: '14px'
+                    })
+                  }}
+                  aria-label={`Select ${field.label}`}
+                  menuPlacement="bottom"
+                  menuPosition="absolute"
+                  closeMenuOnSelect={false}
+                  hideSelectedOptions={false}
+                />
+              </div>
+              
+              {totalOptions > 0 && (
+                <div className="mt-2 text-xs text-gray-500">
+                  {selectedCount} of {totalOptions} selected
+                </div>
+              )}
             </div>
           );
         })}
       </div>
-      <div className="mt-4 flex justify-end">
-        <button
-          type="button"
-          className="flex items-center gap-2 px-5 py-2 text-sm font-semibold bg-red-600 text-white rounded-lg shadow hover:bg-red-700 transition-colors duration-150"
-          onClick={() => {
-            const reset: FilterState = {};
-            filterFields.forEach(f => { reset[f.key] = []; });
-            setFilters(reset);
-          }}
-          title="Clear all selected filters"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-          Reset Filters
-        </button>
+
+      {/* Footer Actions */}
+      <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+        <div className="text-sm text-gray-500">
+          {activeFilters > 0 
+            ? `Showing results for ${activeFilters} applied filter${activeFilters !== 1 ? 's' : ''}`
+            : 'All data will be shown when filters are applied'
+          }
+        </div>
+        
+        <div className="flex items-center gap-3">
+          {activeFilters > 0 && (
+            <button
+              type="button"
+              onClick={resetAllFilters}
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Reset All
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
