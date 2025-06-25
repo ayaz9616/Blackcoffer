@@ -29,7 +29,7 @@ export default function Home() {
     avgIntensity: 0,
     avgRelevance: 0,
     avgLikelihood: 0,
-    activeTopics: 0,
+    activeTopics: 0
   });
   const [modalChart, setModalChart] = useState<string | null>(null);
   const [modalData, setModalData] = useState<Entry[]>([]);
