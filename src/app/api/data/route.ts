@@ -15,10 +15,10 @@ function parseFilters(searchParams: URLSearchParams) {
 
 export async function GET(req: NextRequest) {
   try {
-    await dbConnect();
-    const filters = parseFilters(req.nextUrl.searchParams);
-    const entries = await Entry.find(filters);
-    return NextResponse.json(entries);
+  await dbConnect();
+  const filters = parseFilters(req.nextUrl.searchParams);
+  const entries = await Entry.find(filters);
+  return NextResponse.json(entries);
   } catch {
     return NextResponse.json([], { status: 500 });
   }
